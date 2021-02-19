@@ -1,3 +1,6 @@
+// Author: Max Petruzziello
+// SER210 Spring 2021
+// Assignment 1 Part 2
 package edu.quinnipiac.tictactoe;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,6 +12,7 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+// this Activity is a screen that allows the player to choose to play as an X or an O!
 public class CharacterselectionActivity extends AppCompatActivity {
     public static final String PLAYER_NAME = "player";
     private String playerName = "";
@@ -37,7 +41,8 @@ public class CharacterselectionActivity extends AppCompatActivity {
             intent.putExtra("playerCharacter",selectedCharacter);
             startActivity(intent);
         } else {
-            Toast.makeText(getApplicationContext(),"Please choose a character to play as...",Toast.LENGTH_SHORT).show();
+            // if player has not chosen - they cannot continue to the game screen
+            Toast.makeText(getApplicationContext(),"Choose a Character to Continue!",Toast.LENGTH_SHORT).show();
         }
     }
 }

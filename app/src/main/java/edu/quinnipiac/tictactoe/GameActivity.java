@@ -1,3 +1,7 @@
+// Author: Max Petruzziello
+// SER210 Spring 2021
+// Assignment 1 Part 2
+
 package edu.quinnipiac.tictactoe;
 
 import androidx.appcompat.app.AlertDialog;
@@ -6,11 +10,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,7 +24,6 @@ import java.util.List;
 
 public class GameActivity extends AppCompatActivity implements ITicTacToe {
 
-    private int currentState = ITicTacToe.PLAYING;
     private int playerToken, computerToken;
     private String playerName;
     private char playerCharacter;
@@ -32,6 +37,7 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
     private List<Integer> availableSpaces = new ArrayList<>();
     private TextView computerScoreLabel, playerScoreLabel;
 
+    // set initial values
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,17 +71,25 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
         setMove(playerCharacter, location);
     }
 
+    // resets the game
     public void resetGame(View view) {
         cScore = 0;
         pScore = 0;
         computerScoreLabel.setText(compName + ": " + cScore);
         playerScoreLabel.setText(playerName + ": " + pScore);
         board = new int[5][5];
-        currentState = PLAYING;
         initializeSpaces();
         clearBoard();
     }
 
+    // continuing the game - only called from a Win, Loss, or Tie Alert Dialog
+    public void newGame(){
+        board = new int[5][5];
+        initializeSpaces();
+        clearBoard();
+    }
+
+    // called when the resetButton is clicked or when the alertdialog calls NewGame or ResetGame
     @Override
     public void clearBoard() {
         for (int i = 0; i <= 24; i++) {
@@ -84,8 +98,13 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
             button.setText("");
             button.setEnabled(true);
         }
+        // the reset button is briefly disabled when a player wins or loses - we re-enable it when the game restarts after the alert dialog
+        Button button = (Button) findViewById(getResources().getIdentifier("resetButton", "id",
+                this.getPackageName()));
+        button.setEnabled(true);
     }
 
+    // sets Player's position once button is clicked
     @Override
     public void setMove(int player, int location) {
         int x = location/5;
@@ -99,15 +118,19 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
             clickedButton.setEnabled(false);
             board[x][y] = CROSS;
         }
+        // remove space from available spaces bc no longer available
         availableSpaces.remove(Integer.valueOf(location));
+        // check for winner; act accordingly
         int winner = checkForWinner();
         if (winner == playerToken){
             playerWon();
             return;
+        } else if (winner == 3){
+            nobodyWon();
         }
+        // allow until no more spots open
         if (availableSpaces.size() != 0 ) {
             getComputerMove();
-            Log.d("string", Arrays.deepToString(board));
             winner = checkForWinner();
             if (winner == computerToken){
                 computerWon();
@@ -118,6 +141,7 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
         }
     }
 
+    // generate computer move
     @Override
     public int getComputerMove() {
         boolean notGoodRandom = true;
@@ -125,6 +149,7 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
             System.exit(0);
         }
         while (notGoodRandom == true) {
+            // get random location
             Collections.shuffle(availableSpaces);
             int randomLoc = availableSpaces.get(0);
             boolean locationIsAvailable = isOpenSpot(randomLoc);
@@ -136,6 +161,7 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
                 } else {
                     board[x][y] = CROSS;
                 }
+                // set marked location button to disabled and remove location from availablespaces
                 Button button = (Button) findViewById(getResources().getIdentifier("button" + randomLoc, "id",
                         this.getPackageName()));
                 button.setText("" + compCharacter);
@@ -146,10 +172,10 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
                 notGoodRandom = true;
             }
         }
-        checkForWinner();
         return 0;
     }
 
+    // check if spot is open - used when computer attempts a random location
     public boolean isOpenSpot(int location) {
         if (availableSpaces.contains(location)) {
             return true;
@@ -158,10 +184,13 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
         }
     }
 
+    // method to display a win by the user
     public void playerWon(){
         pScore++;
         playerScoreLabel.setText(playerName + ": " + pScore);
-        new AlertDialog.Builder(this)
+        // briefly disable all buttons - player can see where they won!
+        disableAllButtons();
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("You Won!")
                 .setMessage("What do you want to do next?")
                 .setPositiveButton("Play Again", new DialogInterface.OnClickListener() {
@@ -175,19 +204,50 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
                     }
                 })
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
+                .create();
+        // handler used to generate a 1 second pause between WIN and win alert dialog popping up
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                dialog.show();
+            }
+        }, 1000);
     }
 
-    public void newGame(){
-        board = new int[5][5];
-        initializeSpaces();
-        clearBoard();
+    // called if nobody wins - A draw
+    public void nobodyWon(){
+        // briefly disable all buttons
+        disableAllButtons();
+       AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("It's a draw! Nobody Won!")
+                .setMessage("What do you want to do next?")
+                .setPositiveButton("Play Again", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        newGame();
+                    }
+                })
+                .setNegativeButton("Reset Game",  new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        resetGame(null);
+                    }
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .create();
+        // handler used to generate a 1 second pause between tie and tie alert dialog popping up
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                dialog.show();
+            }
+        }, 1000);
     }
 
     public void computerWon(){
         cScore++;
         computerScoreLabel.setText(compName + ": " + cScore);
-        new AlertDialog.Builder(this)
+        // briefly disable all buttons - player can see where they lost :(
+        disableAllButtons();
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("You Lost :/")
                 .setMessage("What do you want to do next?")
                 .setPositiveButton("Play Again", new DialogInterface.OnClickListener() {
@@ -201,11 +261,25 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
                     }
                 })
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
+                .create();
+        // handler used to generate a 1 second pause between loss and loss alert dialog popping up
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                dialog.show();
+            }
+        }, 1000);
     }
 
     @Override
     public int checkForWinner() {
+        // if the board is full - return checkforwinner = 3 ; calls the method NobodyWon()
+        if (availableSpaces.size() == 0){
+            return 3;
+        }
+
+        // check for horizontal and vertical wins
+
         for (int i = 0; i < 5; i++) {
             if ((board[i][0] == CROSS && board[i][1] == CROSS && board[i][2] == CROSS && board[i][3] == CROSS) ||
                     (board[i][1] == CROSS && board[i][2] == CROSS && board[i][3] == CROSS && board[i][4] == CROSS)) {
@@ -225,6 +299,8 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
                 return NOUGHT;
             }
         }
+
+        // check for specific diagonal wins
 
         if ((board[0][0] == CROSS && board[1][1] == CROSS && board[2][2] == CROSS && board[3][3] == CROSS)
                 || (board[1][1] == CROSS && board[2][2] == CROSS && board[3][3] == CROSS && board[4][4] == CROSS)) {
@@ -258,39 +334,22 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
         return 0;
     }
 
-
-//    @Override
-//    public int checkForWinner() {
-//        for (int i = 0; i < 5; i++) {
-//            if ((board[i][0] == CROSS && board[i][1] == CROSS && board[i][2] == CROSS && board[i][3] == CROSS) ||
-//                    (board[i][1] == CROSS && board[i][2] == CROSS && board[i][3] == CROSS && board[i][4] == CROSS)) {
-//                System.out.println("cross won");
-//                return CROSS_WON;
-//            } else if ((board[i][0] == NOUGHT && board[i][1] == NOUGHT && board[i][2] == NOUGHT
-//                    && board[i][3] == NOUGHT)
-//                    || (board[i][1] == NOUGHT && board[i][2] == NOUGHT && board[i][3] == NOUGHT
-//                    && board[i][4] == NOUGHT)) {
-//                return NOUGHT_WON;
-//            }
-//        }
-//
-//        for (int j = 0; j < 5; j++) {
-//            if ((board[0][j] == CROSS && board[1][j] == CROSS && board[2][j] == CROSS && board[3][j] == CROSS)
-//                    || (board[1][j] == CROSS && board[2][j] == CROSS && board[3][j] == CROSS && board[4][j] == CROSS)) {
-//                return CROSS_WON;
-//            } else if ((board[0][j] == NOUGHT && board[1][j] == NOUGHT && board[2][j] == NOUGHT
-//                    && board[3][j] == NOUGHT)
-//                    || (board[1][j] == NOUGHT && board[2][j] == NOUGHT && board[3][j] == NOUGHT
-//                    && board[4][j] == NOUGHT)) {
-//                return NOUGHT_WON;
-//            }
-//        }
-//        return 0;
-//    }
-
+    // initialize ArrayList of availablespaces
     public void initializeSpaces() {
         availableSpaces.clear();
         Collections.addAll(availableSpaces, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
                 21, 22, 23, 24);
+    }
+
+    // used to briefly disable all buttons before a Win, Lose, or Tie AlertDialog - all buttons are re-enable when user makes next choice from alert dialog
+    public void disableAllButtons(){
+        for (int i = 0; i <= 24; i++) {
+            Button button = (Button) findViewById(getResources().getIdentifier("button" + i, "id",
+                    this.getPackageName()));
+            button.setEnabled(false);
+        }
+        Button button = (Button) findViewById(getResources().getIdentifier("resetButton", "id",
+                this.getPackageName()));
+        button.setEnabled(false);
     }
 }
