@@ -1,13 +1,15 @@
 package edu.quinnipiac.tictactoe;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,7 +99,6 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
             clickedButton.setEnabled(false);
             board[x][y] = CROSS;
         }
-        Toast.makeText(getApplicationContext(), Arrays.deepToString(board),Toast.LENGTH_SHORT).show();
         availableSpaces.remove(Integer.valueOf(location));
         int winner = checkForWinner();
         if (winner == playerToken){
@@ -160,6 +161,24 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
     public void playerWon(){
         pScore++;
         playerScoreLabel.setText(playerName + ": " + pScore);
+        new AlertDialog.Builder(this)
+                .setTitle("You Won!")
+                .setMessage("What do you want to do next?")
+                .setPositiveButton("Play Again", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        newGame();
+                    }
+                })
+                .setNegativeButton("Reset Game",  new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                      resetGame(null);
+                    }
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+    }
+
+    public void newGame(){
         board = new int[5][5];
         initializeSpaces();
         clearBoard();
@@ -168,9 +187,21 @@ public class GameActivity extends AppCompatActivity implements ITicTacToe {
     public void computerWon(){
         cScore++;
         computerScoreLabel.setText(compName + ": " + cScore);
-        board = new int[5][5];
-        initializeSpaces();
-        clearBoard();
+        new AlertDialog.Builder(this)
+                .setTitle("You Lost :/")
+                .setMessage("What do you want to do next?")
+                .setPositiveButton("Play Again", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        newGame();
+                    }
+                })
+                .setNegativeButton("Reset Game",  new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        resetGame(null);
+                    }
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
     }
 
     @Override

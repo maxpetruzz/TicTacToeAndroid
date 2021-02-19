@@ -40,8 +40,4 @@ public class CharacterselectionActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(),"Please choose a character to play as...",Toast.LENGTH_SHORT).show();
         }
     }
-
-
-
-
 }
