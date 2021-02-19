@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:background="#121212"
+    android:orientation="vertical"
+    android:weightSum="5"
+    tools:context=".CharacterselectionActivity">
+
+    <TextView
+        android:id="@+id/chooseText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="clip_vertical"
+        android:layout_marginTop="-50dp"
+        android:fontFamily="@font/montserrat"
+        android:gravity="center"
+        android:text="Choose Your Character"
+        android:textColor="#FFFFFF"
+        android:textSize="50sp" />
+
+
+    <RadioGroup
+
+        android:id="@+id/radioGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+
+        <RadioButton
+            android:id="@+id/radio_X"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="25dp"
+            android:fontFamily="@font/montserrat_bold"
+            android:text="X"
+            android:textColor="#5FBFFF"
+            android:textSize="50sp"
+            app:buttonTint="#FFFFFF" />
+
+        <RadioButton
+            android:id="@+id/radio_O"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="25dp"
+            android:fontFamily="@font/montserrat_bold"
+            android:text="O"
+            android:textColor="#5FBFFF"
+            android:textSize="50sp"
+            app:buttonTint="#FFFFFF" />
+
+    </RadioGroup>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center"
+        >
+        <Button
+            android:id="@+id/startButton2"
+            android:layout_width="match_parent"
+            android:layout_height="65dp"
+            android:layout_gravity="center"
+            android:onClick="goToGame"
+            android:text="BEGIN GAME"
+            app:backgroundTint="#5FBFFF" />
+    </LinearLayout>
+
+
+
+</LinearLayout>
